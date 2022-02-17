@@ -1,7 +1,12 @@
 var cors = require("cors");
+const fs = require("fs");
 var bodyParser = require("body-parser");
 const express = require("express");
 const puppeteer = require("puppeteer");
+
+if (!fs.existsSync("screenshots")) {
+  fs.mkdirSync("screenshots");
+}
 
 const app = express();
 app.use(cors());
@@ -11,8 +16,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.post("/screenshot", function (req, res) {
-  res.send("test");
   (async () => {
+    const lastIndex = fs
+      .readdirSync("screenshots")
+      .pop()
+      ?.split("_")[1]
+      .split(".")[0];
+
     const browser = await puppeteer.launch({
       headless: true,
     });
@@ -29,9 +39,7 @@ app.post("/screenshot", function (req, res) {
       window.chart_data = data;
     }, req.body);
 
-    await page.goto("http://localhost:3000/service", {
-      waitUntil: "networkidle0",
-    });
+    await page.goto("http://localhost:3000/service");
 
     const chartWrapper = await page.$("#chart-wrapper");
     const chartWrapperBox = await chartWrapper.boundingBox();
@@ -39,18 +47,19 @@ app.post("/screenshot", function (req, res) {
     if (!!tableChart) {
       const tableChartBox = await tableChart.boundingBox();
       const screenshot = await tableChart.screenshot({
-        path: "service.png",
+        path: `screenshots/screenshot_${lastIndex ? +lastIndex + 1 : 0}.png`,
         clip: {
           x: chartWrapperBox.x,
           y: chartWrapperBox.y,
           width: Math.min(tableChartBox.width, page.viewport().width),
-          height: Math.max(tableChartBox.height, page.viewport().height),
+          height: tableChartBox.height + 53,
         },
       });
-      // console.log(screenshot);
+      res.contentType("image/jpeg");
+      await res.send(screenshot);
     } else {
       const screenshot = await page.screenshot({
-        path: "service.png",
+        path: `screenshots/screenshot_${lastIndex ? +lastIndex + 1 : 0}.png`,
         clip: {
           x: chartWrapperBox.x,
           y: chartWrapperBox.y,
@@ -58,7 +67,8 @@ app.post("/screenshot", function (req, res) {
           height: Math.min(chartWrapperBox.height, page.viewport().height),
         },
       });
-      // console.log(screenshot);
+      res.contentType("image/jpeg");
+      await res.send(screenshot);
     }
 
     await browser.close();
