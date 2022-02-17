@@ -16,7 +16,13 @@ app.post("/screenshot", function (req, res) {
     const browser = await puppeteer.launch({
       headless: true,
     });
+
     const page = await browser.newPage();
+
+    await page.setViewport({
+      width: 1366,
+      height: 768,
+    });
 
     await page.evaluateOnNewDocument((data) => {
       window.chart_data = {};
@@ -27,13 +33,34 @@ app.post("/screenshot", function (req, res) {
       waitUntil: "networkidle0",
     });
 
-    await page.waitForTimeout(2000);
+    const chartWrapper = await page.$("#chart-wrapper");
+    const chartWrapperBox = await chartWrapper.boundingBox();
+    const tableChart = await page.$("#table-chart");
+    if (!!tableChart) {
+      const tableChartBox = await tableChart.boundingBox();
+      const screenshot = await tableChart.screenshot({
+        path: "service.png",
+        clip: {
+          x: chartWrapperBox.x,
+          y: chartWrapperBox.y,
+          width: Math.min(tableChartBox.width, page.viewport().width),
+          height: Math.max(tableChartBox.height, page.viewport().height),
+        },
+      });
+      // console.log(screenshot);
+    } else {
+      const screenshot = await page.screenshot({
+        path: "service.png",
+        clip: {
+          x: chartWrapperBox.x,
+          y: chartWrapperBox.y,
+          width: Math.min(chartWrapperBox.width, page.viewport().width),
+          height: Math.min(chartWrapperBox.height, page.viewport().height),
+        },
+      });
+      // console.log(screenshot);
+    }
 
-    const screenshot = await page.screenshot({
-      path: "service.png",
-      fullPage: true,
-    });
-    console.log(screenshot);
     await browser.close();
   })();
 });
