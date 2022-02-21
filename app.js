@@ -40,7 +40,6 @@ app.post("/screenshot", function (req, res) {
     }, req.body);
 
     await page.goto("http://localhost:3000/service");
-
     const chartWrapper = await page.$("#chart-wrapper");
     const chartWrapperBox = await chartWrapper.boundingBox();
     const tableChart = await page.$("#table-chart");
@@ -54,9 +53,14 @@ app.post("/screenshot", function (req, res) {
           width: Math.min(tableChartBox.width, page.viewport().width),
           height: tableChartBox.height + 53,
         },
+        encoding: "base64",
       });
+
+      let base64Encode = `data:image/png;base64,${screenshot}`;
+      // return base64Encode;
+
       res.contentType("image/jpeg");
-      await res.send(screenshot);
+      await res.send(base64Encode);
     } else {
       const screenshot = await page.screenshot({
         path: `screenshots/screenshot_${lastIndex ? +lastIndex + 1 : 0}.png`,
@@ -66,9 +70,11 @@ app.post("/screenshot", function (req, res) {
           width: Math.min(chartWrapperBox.width, page.viewport().width),
           height: Math.min(chartWrapperBox.height, page.viewport().height),
         },
+        encoding: "base64",
       });
+      let base64Encode = `data:image/png;base64,${screenshot}`;
       res.contentType("image/jpeg");
-      await res.send(screenshot);
+      await res.send(base64Encode);
     }
 
     await browser.close();
