@@ -55,10 +55,7 @@ app.post("/screenshot", function (req, res) {
         },
         encoding: "base64",
       });
-
       let base64Encode = `data:image/png;base64,${screenshot}`;
-      // return base64Encode;
-
       res.contentType("image/jpeg");
       await res.send(base64Encode);
     } else {
