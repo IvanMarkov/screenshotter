@@ -1,19 +1,23 @@
-var cors = require("cors");
-const fs = require("fs");
-var bodyParser = require("body-parser");
-const express = require("express");
-const puppeteer = require("puppeteer");
+import cors from "cors";
+import fs from "fs";
+import bodyParser from "body-parser";
+import express from "express";
+import puppeteer from "puppeteer";
+import dotenv from "dotenv";
 
 if (!fs.existsSync("screenshots")) {
   fs.mkdirSync("screenshots");
 }
 
+dotenv.config();
 const app = express();
 app.use(cors());
 app.options("*", cors());
+const port = process.env.PORT;
+const clientUrl = process.env.CLIENT_URL;
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+app.use(bodyParser.json({ limit: "50mb" }));
 
 app.post("/screenshot", function (req, res) {
   (async () => {
@@ -29,11 +33,11 @@ app.post("/screenshot", function (req, res) {
     });
 
     await page.evaluateOnNewDocument((data) => {
-      window.chart_data = {};
-      window.chart_data = data;
+      (window as any).chart_data = {};
+      (window as any).chart_data = data;
     }, req.body);
 
-    await page.goto("http://localhost:3000/service");
+    await page.goto(`${clientUrl}/service`);
     const chartWrapper = await page.$("#chart-wrapper");
     const chartWrapperBox = await chartWrapper?.boundingBox();
     const tableChart = await page.$("#table-chart");
@@ -77,6 +81,6 @@ app.post("/screenshot", function (req, res) {
   })();
 });
 
-app.listen(3001, function () {
-  console.log("CORS-enabled web server listening on port 3001");
+app.listen(port, function () {
+  console.log(`Screenshotter is running on port ${port}`);
 });
