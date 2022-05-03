@@ -37,7 +37,7 @@ app.post("/screenshot", function (req, res) {
       (window as any).chart_data = data;
     }, req.body);
 
-    await page.goto(`${clientUrl}/service`);
+    await page.goto(`${clientUrl}/service-dashboard`);
     const chartWrapper = await page.$("#chart-wrapper");
     const chartWrapperBox = await chartWrapper?.boundingBox();
     const tableChart = await page.$("#table-chart");
