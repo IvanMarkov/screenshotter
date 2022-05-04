@@ -37,41 +37,69 @@ app.post("/screenshot", function (req, res) {
       (window as any).chart_data = data;
     }, req.body);
 
-    await page.goto(`${clientUrl}/service-dashboard`);
-    const chartWrapper = await page.$("#chart-wrapper");
-    const chartWrapperBox = await chartWrapper?.boundingBox();
-    const tableChart = await page.$("#table-chart");
-    if (!!chartWrapper) {
-      if (!!tableChart) {
-        const tableChartBox = await tableChart.boundingBox();
-        const screenshot = await tableChart.screenshot({
-          clip: {
-            x: chartWrapperBox?.x,
-            y: chartWrapperBox?.y,
-            width: Math.min(tableChartBox.width, page.viewport().width),
-            height: tableChartBox.height + 53,
-          },
-          encoding: "base64",
-        });
-        let base64Encode = `data:image/png;base64,${screenshot}`;
-        res.contentType("image/jpeg");
-        await res.send(base64Encode);
+    if (req.body.is_dashboard) {
+      await page.goto(`${clientUrl}/service-dashboard`);
+      const chartWrapper = await page.$("#chart-wrapper");
+      const chartWrapperBox = await chartWrapper?.boundingBox();
+      const tableChart = await page.$("#table-chart");
+      if (!!chartWrapper) {
+        if (!!tableChart) {
+          const tableChartBox = await tableChart.boundingBox();
+          const screenshot = await tableChart.screenshot({
+            clip: {
+              x: chartWrapperBox?.x,
+              y: chartWrapperBox?.y,
+              width: Math.min(tableChartBox.width, page.viewport().width),
+              height: tableChartBox.height + 53,
+            },
+            encoding: "base64",
+          });
+          let base64Encode = `data:image/png;base64,${screenshot}`;
+          res.contentType("image/jpeg");
+          await res.send(base64Encode);
+        } else {
+          const screenshot = await page.screenshot({
+            clip: {
+              x: chartWrapperBox.x,
+              y: chartWrapperBox.y,
+              width: Math.min(chartWrapperBox.width, page.viewport().width),
+              height: Math.min(chartWrapperBox.height, page.viewport().height),
+            },
+            encoding: "base64",
+          });
+          let base64Encode = `data:image/png;base64,${screenshot}`;
+          res.contentType("image/jpeg");
+          await res.send(base64Encode);
+        }
       } else {
-        const screenshot = await page.screenshot({
-          clip: {
-            x: chartWrapperBox.x,
-            y: chartWrapperBox.y,
-            width: Math.min(chartWrapperBox.width, page.viewport().width),
-            height: Math.min(chartWrapperBox.height, page.viewport().height),
-          },
-          encoding: "base64",
-        });
+        const screenshot = await page.screenshot({ encoding: "base64" });
         let base64Encode = `data:image/png;base64,${screenshot}`;
         res.contentType("image/jpeg");
         await res.send(base64Encode);
       }
-    } else {
-      const screenshot = await page.screenshot({ encoding: "base64" });
+    } else if (req.body.is_network) {
+      await page.goto(`${clientUrl}/service-network`);
+      const screenshot = await page.screenshot({
+        encoding: "base64",
+      });
+      let base64Encode = `data:image/png;base64,${screenshot}`;
+      res.contentType("image/jpeg");
+      await res.send(base64Encode);
+    }
+    if (req.body.is_keywords) {
+      await page.goto(`${clientUrl}/service-keywords`);
+      const screenshot = await page.screenshot({
+        encoding: "base64",
+      });
+      let base64Encode = `data:image/png;base64,${screenshot}`;
+      res.contentType("image/jpeg");
+      await res.send(base64Encode);
+    }
+    if (req.body.is_feedback) {
+      await page.goto(`${clientUrl}/service-feedback`);
+      const screenshot = await page.screenshot({
+        encoding: "base64",
+      });
       let base64Encode = `data:image/png;base64,${screenshot}`;
       res.contentType("image/jpeg");
       await res.send(base64Encode);
