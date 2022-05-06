@@ -88,6 +88,21 @@ app.post("/screenshot", function (req, res) {
     }
     if (req.body.is_keywords) {
       await page.goto(`${clientUrl}/service-keywords`);
+      await page.setViewport({
+        width: 1920,
+        height: 1080,
+      });
+      const keywordsChart = await page.$("#keywords-chart");
+      const keywordsChartBox = await keywordsChart?.boundingBox();
+      const filterContainer = await page.$("#filter-container");
+      const filterContainerBox = await filterContainer?.boundingBox();
+      const filterHeight = filterContainerBox?.height
+        ? Math.round(filterContainerBox?.height)
+        : 0;
+      await page.setViewport({
+        width: 1920,
+        height: Math.round(keywordsChartBox?.height) + filterHeight + 16,
+      });
       const screenshot = await page.screenshot({
         encoding: "base64",
       });
@@ -97,6 +112,21 @@ app.post("/screenshot", function (req, res) {
     }
     if (req.body.is_feedback) {
       await page.goto(`${clientUrl}/service-feedback`);
+      await page.setViewport({
+        width: 1920,
+        height: 1080,
+      });
+      const postWrapper = await page.$("#post-wrapper");
+      const postWrapperBox = await postWrapper?.boundingBox();
+      const filterContainer = await page.$("#filter-container");
+      const filterContainerBox = await filterContainer?.boundingBox();
+      const filterHeight = filterContainerBox?.height
+        ? Math.round(filterContainerBox?.height)
+        : 0;
+      await page.setViewport({
+        width: 1920,
+        height: Math.round(postWrapperBox?.height) + filterHeight + 16,
+      });
       const screenshot = await page.screenshot({
         encoding: "base64",
       });
